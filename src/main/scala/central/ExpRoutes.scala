@@ -29,6 +29,15 @@ class ExpRoutes(expManager: ActorRef[ExpManager.Command])(implicit val system: A
   def listExpOverview: Future[ExpOverviewListing] =
     expManager ? ListExpOverview
 
+  def listExpResults(expId: String): Future[Option[ResultTable]] =
+    expManager ? { ref => ListExpResults(expId, ref) }
+
+  def getExpView(expId: String): Future[Option[ResultTable]] =
+    expManager ? { ref => GetExpView(expId, ref) }
+
+  def listRenderedTasks(expId: String): Future[Option[RenderedTaskListing]] =
+    expManager ? { ref => ListRenderedTasks(expId, ref) }
+
   def expRoutes: Route = cors() {
     pathPrefix("api") {
       pathPrefix("exp") {
@@ -43,7 +52,7 @@ class ExpRoutes(expManager: ActorRef[ExpManager.Command])(implicit val system: A
           },
 
           pathPrefix("getOverview") {
-            parameters("exp_id") { expId =>
+            parameters("expId") { expId =>
               rejectEmptyResponse {
                 onSuccess(getExpOverview(expId)) { resp => complete(resp) }
               }
@@ -53,6 +62,36 @@ class ExpRoutes(expManager: ActorRef[ExpManager.Command])(implicit val system: A
           pathPrefix("listOverview") {
             onSuccess(listExpOverview) { resp =>
               complete(resp)
+            }
+          },
+
+          pathPrefix("listResults") {
+            parameters("expId") { expId =>
+              rejectEmptyResponse {
+                onSuccess(listExpResults(expId)) { resp =>
+                  complete(resp)
+                }
+              }
+            }
+          },
+
+          pathPrefix("getResultView") {
+            parameters("expId") { expId =>
+              rejectEmptyResponse {
+                onSuccess(getExpView(expId)) { resp =>
+                  complete(resp)
+                }
+              }
+            }
+          },
+
+          pathPrefix("listRenderedTasks") {
+            parameters("expId") { expId =>
+              rejectEmptyResponse {
+                onSuccess(listRenderedTasks(expId)) { resp =>
+                  complete(resp)
+                }
+              }
             }
           }
         )
